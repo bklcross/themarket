@@ -16,24 +16,26 @@ var connection = mysql.createConnection(
 connection.connect(function(err)
 {
   if (err) {console.log(err);}
-  showCrypto(questions);
-  connection.end();
+  showCrypto();
+  //connection.end();
 });
 
-function showCrypto(CallBack)
+function showCrypto()
 {
     console.log("Welcome to the bkl_EXCHANGE\n");
     connection.query("SELECT * FROM cryptos", function(err, res)
     {
       if (err) throw err;
       console.table(res);
-      CallBack();
+
+      questions();
+      // CallBack();
     });
     
 
 }
 
-function questions(CallBack)
+function questions()
 {
   inquirer.prompt([
   {
@@ -54,21 +56,23 @@ function questions(CallBack)
       if (answers.quant > res[0].circulating_supply)
       {
         console.log("Sorry the exchange doesn't have enough");
+        connection.end();
+      }
+      else
+      {
+        update(answers.itemNum, answers.quant);
       }
     })
-    CallBack();
   })
 }
 
-function update()
+function update(itm,qty)
 { 
-  var Quantity = answers.quant;
-  var Item = answers.itemNum;
-  var connectQuery = "UPDATE cryptos SET circulating_supply = circulating_supply - " + Quantity + " WHERE item_id = " + Item;
+  var connectQuery = "UPDATE cryptos SET circulating_supply = circulating_supply - " + qty + " WHERE item_id = " + itm;
   var current_circulating_supply = 0;
 
-  console.log("Item:", answers.itemNum);
-  console.log("Quantity:", answers.quant);
+  console.log("Item:", itm);
+  console.log("Quantity:", qty);
 
   connection.query(connectQuery, function(err, res)
   {
@@ -77,19 +81,20 @@ function update()
     else
       {
         console.log("Your order has been processed");
-        getCirculatingSupply(Quantity);
+        getCirculatingSupply(itm);
       }
   });
 }
 
-function getCirculatingSupply(quantity)
+function getCirculatingSupply(id)
 {
-  connection.query("SELECT circulating_supply FROM cryptos WHERE ?", [{ item_id: quantity}], function(err, res)
+  connection.query("SELECT circulating_supply FROM cryptos WHERE ?", [id], function(err, res)
   {
     if (err) throw err;
     else {
       current_circulating_supply = res[0].circulating_supply;
       console.log("Current Circulating Supply:", current_circulating_supply);
+      connection.end();
     }
   });
 };

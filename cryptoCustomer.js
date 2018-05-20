@@ -9,7 +9,7 @@ var connection = mysql.createConnection(
 
   user: "root",
 
-  password: "Iplay2win",
+  password: "root",
   database: "bkl_exchange"
 });
 
